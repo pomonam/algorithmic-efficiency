@@ -1,7 +1,7 @@
 """FastMRI workload parent class."""
 
 import math
-from typing import Optional
+from typing import Dict, Optional
 
 from algorithmic_efficiency import spec
 from algorithmic_efficiency.workloads.fastmri import input_pipeline
@@ -9,14 +9,15 @@ from algorithmic_efficiency.workloads.fastmri import input_pipeline
 
 class BaseFastMRIWorkload(spec.Workload):
 
-  def has_reached_validation_target(self, eval_result: float) -> bool:
+  def has_reached_validation_target(self, eval_result: Dict[str,
+                                                            float]) -> bool:
     return eval_result['validation/ssim'] > self.validation_target_value
 
   @property
   def validation_target_value(self) -> float:
     return 0.7344
 
-  def has_reached_test_target(self, eval_result: float) -> bool:
+  def has_reached_test_target(self, eval_result: Dict[str, float]) -> bool:
     return eval_result['test/ssim'] > self.test_target_value
 
   @property

@@ -84,7 +84,7 @@ class BaseMnistWorkload(spec.Workload):
     return 0.9
 
   def has_reached_test_target(self, eval_result: Dict[str, float]) -> bool:
-    return eval_result['test/accuracy'] > self.validation_target_value
+    return eval_result['test/accuracy'] > self.test_target_value
 
   @property
   def test_target_value(self) -> float:

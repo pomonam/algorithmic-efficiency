@@ -59,21 +59,15 @@ class ImagenetVitWorkload(BaseImagenetVitWorkload, ImagenetResNetWorkload):
     del model_state
     del rng
     del update_batch_norm
-
     model = params
-
     if mode == spec.ForwardPassMode.EVAL:
       model.eval()
-
     if mode == spec.ForwardPassMode.TRAIN:
       model.train()
-
     contexts = {
         spec.ForwardPassMode.EVAL: torch.no_grad,
         spec.ForwardPassMode.TRAIN: contextlib.nullcontext
     }
-
     with contexts[mode]():
       logits_batch = model(augmented_and_preprocessed_input_batch['inputs'])
-
     return logits_batch, None

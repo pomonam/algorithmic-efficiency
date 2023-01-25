@@ -27,14 +27,15 @@ class BaseWmtWorkload(spec.Workload):
     super().__init__()
     self._tokenizer = None
 
-  def has_reached_validation_target(self, eval_result: float) -> bool:
+  def has_reached_validation_target(self, eval_result: Dict[str,
+                                                            float]) -> bool:
     return eval_result['validation/bleu'] > self.validation_target_value
 
   @property
   def validation_target_value(self) -> float:
     return 30.8491
 
-  def has_reached_test_target(self, eval_result: float) -> bool:
+  def has_reached_test_target(self, eval_result: Dict[str, float]) -> bool:
     return eval_result['test/bleu'] > self.test_target_value
 
   @property

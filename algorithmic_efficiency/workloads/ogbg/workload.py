@@ -17,7 +17,8 @@ class BaseOgbgWorkload(spec.Workload):
 
   _num_outputs: int = 128
 
-  def has_reached_validation_target(self, eval_result: float) -> bool:
+  def has_reached_validation_target(self, eval_result: Dict[str,
+                                                            float]) -> bool:
     return eval_result[
         'validation/mean_average_precision'] > self.validation_target_value
 
@@ -25,7 +26,7 @@ class BaseOgbgWorkload(spec.Workload):
   def validation_target_value(self) -> float:
     return 0.28098
 
-  def has_reached_test_target(self, eval_result: float) -> bool:
+  def has_reached_test_target(self, eval_result: Dict[str, float]) -> bool:
     return eval_result['test/mean_average_precision'] > self.test_target_value
 
   @property

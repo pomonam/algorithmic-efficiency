@@ -262,24 +262,25 @@ def mixup_tf(key: spec.RandomState,
   return inputs, targets
 
 
-def create_split(split,
-                 dataset_builder,
-                 rng,
-                 global_batch_size,
-                 train,
-                 image_size,
-                 resize_size,
-                 mean_rgb,
-                 stddev_rgb,
-                 cache=False,
-                 repeat_final_dataset=False,
-                 aspect_ratio_range=(0.75, 4.0 / 3.0),
-                 area_range=(0.08, 1.0),
-                 use_mixup=False,
-                 mixup_alpha=0.1,
-                 use_randaug=False,
-                 randaug_num_layers=2,
-                 randaug_magnitude=10) -> Iterator[Dict[str, spec.Tensor]]:
+def create_split(
+    split: str,
+    dataset_builder: tfds.core.dataset_builder.DatasetBuilder,
+    rng: spec.RandomState,
+    global_batch_size: int,
+    train: bool,
+    image_size: int,
+    resize_size: int,
+    mean_rgb: Tuple[float, float, float],
+    stddev_rgb: Tuple[float, float, float],
+    cache: bool = False,
+    repeat_final_dataset: bool = False,
+    aspect_ratio_range: Tuple[float, float] = (0.75, 4.0 / 3.0),
+    area_range: Tuple[float, float] = (0.08, 1.0),
+    use_mixup: bool = False,
+    mixup_alpha: float = 0.1,
+    use_randaug: bool = False,
+    randaug_num_layers: int = 2,
+    randaug_magnitude: int = 10) -> Iterator[Dict[str, spec.Tensor]]:
   """Creates a split from the ImageNet dataset using TensorFlow Datasets."""
   shuffle_rng, preprocess_rng, mixup_rng = jax.random.split(rng, 3)
 

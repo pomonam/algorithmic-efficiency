@@ -5,7 +5,7 @@ import itertools
 import math
 import os
 import random
-from typing import Dict, Iterator, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 import numpy as np
 import torch
@@ -51,16 +51,15 @@ def imagenet_v2_to_torch(
 
 class ImagenetResNetWorkload(BaseImagenetResNetWorkload):
 
-  def _build_dataset(
-      self,
-      data_rng: spec.RandomState,
-      split: str,
-      data_dir: str,
-      global_batch_size: int,
-      cache: Optional[bool] = None,
-      repeat_final_dataset: Optional[bool] = None,
-      use_mixup: bool = False,
-      use_randaug: bool = False) -> Iterator[Dict[str, spec.Tensor]]:
+  def _build_dataset(self,
+                     data_rng: spec.RandomState,
+                     split: str,
+                     data_dir: str,
+                     global_batch_size: int,
+                     cache: Optional[bool] = None,
+                     repeat_final_dataset: Optional[bool] = None,
+                     use_mixup: bool = False,
+                     use_randaug: bool = False) -> torch.utils.data.DataLoader:
     del cache
     del repeat_final_dataset
     if split == 'test':
@@ -126,7 +125,7 @@ class ImagenetResNetWorkload(BaseImagenetResNetWorkload):
         batch_size=ds_iter_batch_size,
         shuffle=not USE_PYTORCH_DDP and is_train,
         sampler=sampler,
-        num_workers=4 if is_train else 0,
+        num_workers=4,
         pin_memory=True,
         drop_last=is_train,
         persistent_workers=is_train)
@@ -186,27 +185,21 @@ class ImagenetResNetWorkload(BaseImagenetResNetWorkload):
       update_batch_norm: bool) -> Tuple[spec.Tensor, spec.ModelAuxiliaryState]:
     del model_state
     del rng
-
     model = params
-
     if mode == spec.ForwardPassMode.EVAL:
       if update_batch_norm:
         raise ValueError(
             'Batch norm statistics cannot be updated during evaluation.')
       model.eval()
-
     if mode == spec.ForwardPassMode.TRAIN:
       model.train()
       self._update_batch_norm(model, update_batch_norm)
-
     contexts = {
         spec.ForwardPassMode.EVAL: torch.no_grad,
         spec.ForwardPassMode.TRAIN: contextlib.nullcontext
     }
-
     with contexts[mode]():
       logits_batch = model(augmented_and_preprocessed_input_batch['inputs'])
-
     return logits_batch, None
 
   # Does NOT apply regularization, which is left to the submitter to do in

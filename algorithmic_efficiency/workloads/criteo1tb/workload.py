@@ -20,14 +20,15 @@ class BaseCriteo1TbDlrmSmallWorkload(spec.Workload):
   mlp_top_dims: Tuple[int, int, int] = (1024, 1024, 512, 256, 1)
   embed_dim: int = 128
 
-  def has_reached_validation_target(self, eval_result: float) -> bool:
+  def has_reached_validation_target(self, eval_result: Dict[str,
+                                                            float]) -> bool:
     return eval_result['validation/loss'] < self.validation_target_value
 
   @property
   def validation_target_value(self) -> float:
     return 0.124225  # NOTE: this will be later revised.
 
-  def has_reached_test_target(self, eval_result: float) -> bool:
+  def has_reached_test_target(self, eval_result: Dict[str, float]) -> bool:
     return eval_result['test/loss'] < self.test_target_value
 
   @property

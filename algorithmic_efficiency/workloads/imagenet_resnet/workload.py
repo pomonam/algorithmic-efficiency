@@ -18,7 +18,7 @@ class BaseImagenetResNetWorkload(spec.Workload):
   def validation_target_value(self) -> float:
     return 0.77431
 
-  def has_reached_test_target(self, eval_result: float) -> bool:
+  def has_reached_test_target(self, eval_result: Dict[str, float]) -> bool:
     return eval_result['test/accuracy'] > self.test_target_value
 
   @property
@@ -63,7 +63,6 @@ class BaseImagenetResNetWorkload(spec.Workload):
     return (0.229 * 255, 0.224 * 255, 0.225 * 255)
 
   # Data augmentation settings.
-
   @property
   def scale_ratio_range(self) -> Tuple[float, float]:
     return (0.08, 1.0)

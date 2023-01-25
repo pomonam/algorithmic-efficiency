@@ -17,7 +17,7 @@ from torchvision.transforms import InterpolationMode
 from algorithmic_efficiency import spec
 
 
-def cutout(img: spec.Tensor, pad_size: int) -> spec.Tensor:
+def _cutout(img: spec.Tensor, pad_size: int) -> spec.Tensor:
   image_width, image_height = img.size
   x0 = np.random.uniform(image_width)
   y0 = np.random.uniform(image_height)
@@ -34,13 +34,13 @@ def cutout(img: spec.Tensor, pad_size: int) -> spec.Tensor:
   return img
 
 
-def solarize(img: spec.Tensor, threshold: float) -> spec.Tensor:
+def _solarize(img: spec.Tensor, threshold: float) -> spec.Tensor:
   img = np.array(img)
   new_img = np.where(img < threshold, img, 255. - img)
   return PIL.Image.fromarray(new_img.astype(np.uint8))
 
 
-def solarize_add(img: spec.Tensor, addition: int = 0) -> spec.Tensor:
+def _solarize_add(img: spec.Tensor, addition: int = 0) -> spec.Tensor:
   threshold = 128
   img = np.array(img)
   added_img = img.astype(np.int64) + addition
@@ -111,11 +111,11 @@ def _apply_op(img: spec.Tensor,
   elif op_name == 'Posterize':
     img = F.posterize(img, int(magnitude))
   elif op_name == 'Cutout':
-    img = cutout(img, int(magnitude))
+    img = _cutout(img, int(magnitude))
   elif op_name == 'SolarizeAdd':
-    img = solarize_add(img, int(magnitude))
+    img = _solarize_add(img, int(magnitude))
   elif op_name == 'Solarize':
-    img = solarize(img, magnitude)
+    img = _solarize(img, magnitude)
   elif op_name == 'AutoContrast':
     img = F.autocontrast(img)
   elif op_name == 'Equalize':
