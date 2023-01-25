@@ -138,6 +138,7 @@ flags.DEFINE_boolean(
     False,
     'If True, the current datetime will be appended to the experiment name. '
     'Useful for guaranteeing a unique experiment dir for new runs.')
+flags.DEFINE_integer('seed', None, 'A specific random seed to use.')
 flags.DEFINE_boolean('use_wandb',
                      False,
                      'Whether to use Weights & Biases logging.')
@@ -468,8 +469,13 @@ def score_submission_on_workload(workload: spec.Workload,
     all_timings = []
     all_metrics = []
     for hi, hyperparameters in enumerate(tuning_search_space):
-      # Generate a new seed from hardware sources of randomness for each trial.
-      rng_seed = struct.unpack('I', os.urandom(4))[0]
+      if FLAGS.seed is None:
+        # Generate a new seed from hardware sources of randomness
+        # for each trial.
+        rng_seed = struct.unpack('I', os.urandom(4))[0]
+      else:
+        # Use the provided seed.
+        rng_seed = FLAGS.seed
       logging.info('Using RNG seed %d', rng_seed)
       rng = prng.PRNGKey(rng_seed)
       # Because we initialize the PRNGKey with only a single 32 bit int, in the
