@@ -1,7 +1,7 @@
 """CIFAR workload parent class."""
 
 import math
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Optional, Iterator
 
 from absl import flags
 import jax
@@ -17,6 +17,8 @@ USE_PYTORCH_DDP, _, _, _ = pytorch_setup()
 
 
 class BaseCifarWorkload(spec.Workload):
+
+  _num_classes: int = 10
 
   def has_reached_validation_target(self, eval_result: Dict[str,
                                                             float]) -> bool:
@@ -90,6 +92,39 @@ class BaseCifarWorkload(spec.Workload):
   @property
   def eval_period_time_sec(self) -> int:
     return 600  # 10 mins.
+
+  def _build_dataset(
+      self,
+      data_rng: spec.RandomState,
+      split: str,
+      data_dir: str,
+      global_batch_size: int,
+      cache: Optional[bool] = None,
+      repeat_final_dataset: Optional[bool] = None
+  ) -> Iterator[Dict[str, spec.Tensor]]:
+    raise NotImplementedError
+
+  def _build_input_queue(
+      self,
+      data_rng: spec.RandomState,
+      split: str,
+      data_dir: str,
+      global_batch_size: int,
+      cache: Optional[bool] = None,
+      repeat_final_dataset: Optional[bool] = None,
+      num_batches: Optional[int] = None) -> Iterator[Dict[str, spec.Tensor]]:
+    del num_batches
+    if split == 'test':
+      if not cache:
+        raise ValueError('cache must be True for split=test.')
+      if not repeat_final_dataset:
+        raise ValueError('repeat_final_dataset must be True for split=test.')
+    return self._build_dataset(data_rng,
+                               split,
+                               data_dir,
+                               global_batch_size,
+                               cache,
+                               repeat_final_dataset)
 
   @property
   def step_hint(self) -> int:

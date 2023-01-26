@@ -110,22 +110,21 @@ class ImagenetResNetWorkload(BaseImagenetResNetWorkload):
     if USE_PYTORCH_DDP:
       per_device_batch_size = global_batch_size // N_GPUS
       ds_iter_batch_size = per_device_batch_size
-    else:
-      ds_iter_batch_size = global_batch_size
-    if USE_PYTORCH_DDP:
       if is_train:
         sampler = torch.utils.data.distributed.DistributedSampler(
             dataset, num_replicas=N_GPUS, rank=RANK, shuffle=True)
       else:
         sampler = data_utils.DistributedEvalSampler(
             dataset, num_replicas=N_GPUS, rank=RANK, shuffle=False)
+    else:
+      ds_iter_batch_size = global_batch_size
 
     dataloader = torch.utils.data.DataLoader(
         dataset,
         batch_size=ds_iter_batch_size,
         shuffle=not USE_PYTORCH_DDP and is_train,
         sampler=sampler,
-        num_workers=4,
+        num_workers=4 if is_train else 2,
         pin_memory=True,
         drop_last=is_train,
         persistent_workers=is_train)
@@ -147,7 +146,7 @@ class ImagenetResNetWorkload(BaseImagenetResNetWorkload):
     del dropout_rate
     del aux_dropout_rate
     torch.random.manual_seed(rng[0])
-    model = resnet50()
+    model = resnet50(num_classes=self._num_classes)
     self._param_shapes = param_utils.pytorch_param_shapes(model)
     self._param_types = param_utils.pytorch_param_types(self._param_shapes)
     model.to(DEVICE)
