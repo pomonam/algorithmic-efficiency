@@ -7,6 +7,7 @@ from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union
 
 from absl import logging
 import jax
+from torch import nn
 import torch.nn.functional as F
 
 
@@ -56,7 +57,8 @@ ParameterShapeTree = Dict[str, Dict[str, Shape]]
 # structure, to get an iterator over pairs of leaves.
 ParameterKey = str
 # Dicts can be arbitrarily nested.
-ParameterContainer = Dict[ParameterKey, Dict[ParameterKey, Tensor]]
+ParameterContainer = Union[Dict[ParameterKey, Dict[ParameterKey, Tensor]],
+                           nn.Module]
 ParameterTypeTree = Dict[ParameterKey, Dict[ParameterKey, ParameterType]]
 
 RandomState = Any  # Union[jax.random.PRNGKey, int, bytes, ...]
@@ -94,7 +96,7 @@ class Workload(metaclass=abc.ABCMeta):
       global_batch_size: int,
       cache: Optional[bool] = None,
       repeat_final_dataset: Optional[bool] = None,
-      num_batches: Optional[int] = None) -> Iterator[Dict[str, Any]]:
+      num_batches: Optional[int] = None) -> Iterator[Dict[Any, Any]]:
     """Build the input queue for the workload data.
 
     This is the only function that is NOT allowed to be called by submitters.
@@ -325,6 +327,19 @@ class Workload(metaclass=abc.ABCMeta):
     return eval_metrics
 
 
+DataSelectionFn = Callable[[
+    Workload,
+    Iterator[Tuple[Tensor, Tensor]],
+    OptimizerState,
+    ParameterContainer,
+    LossType,
+    Hyperparameters,
+    int,
+    RandomState
+],
+                           Tuple[Tensor, Tensor]]
+
+
 class TrainingCompleteError(Exception):
   pass
 
@@ -387,19 +402,6 @@ def update_params(workload: Workload,
                   rng: RandomState) -> UpdateReturn:
   """Return (updated_optimizer_state, updated_params, updated_model_state)."""
   pass
-
-
-DataSelectionFn = Callable[[
-    Workload,
-    Iterator[Dict[str, Any]],
-    OptimizerState,
-    ParameterContainer,
-    LossType,
-    Hyperparameters,
-    int,
-    RandomState
-],
-                           Tuple[Tensor, Tensor]]
 
 
 # Not allowed to update the model parameters, hyperparameters, global step, or
